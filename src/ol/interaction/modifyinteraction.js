@@ -158,6 +158,12 @@ ol.interaction.Modify = function(options) {
   this.dragSegments_ = null;
 
   /**
+   * @type {Object<string, number>}
+   * @private
+   */
+  this.geometryRevisionMap_ = {};
+
+  /**
    * Draw overlay where are sketch features are drawn.
    * @type {ol.FeatureOverlay}
    * @private
@@ -419,6 +425,41 @@ ol.interaction.Modify.prototype.writeGeometryCollectionGeometry_ =
 
 
 /**
+ * Save geometry revisions to be able to check for changes later
+ * @private
+ */
+ol.interaction.Modify.prototype.saveCheckpoint_ = function() {
+  this.geometryRevisionMap_ = {};
+  this.features_.forEach(function(feature) {
+    var geometry = feature.getGeometry();
+    if (goog.isDefAndNotNull(geometry)) {
+      var id = goog.getUid(geometry).toString();
+      this.geometryRevisionMap_[id] = geometry.getRevision();
+    }
+  }, this);
+};
+
+
+/**
+ * Check if any geometry has newer revision
+ * @return {boolean} Returns true if any geometry has a newer revision
+       since last checkpoint
+ * @private
+ */
+ol.interaction.Modify.prototype.hasChanges_ = function() {
+  return this.features_.getArray().some(function(feature) {
+    var geometry = feature.getGeometry();
+    if (goog.isDefAndNotNull(geometry)) {
+      var id = goog.getUid(geometry).toString();
+      return this.geometryRevisionMap_[id] < geometry.getRevision();
+    } else {
+      return true;
+    }
+  }, this);
+};
+
+
+/**
  * @param {ol.Coordinate} coordinates Coordinates.
  * @return {ol.Feature} Vertex feature.
  * @private
@@ -468,6 +509,7 @@ ol.interaction.Modify.handleDownEvent_ = function(evt) {
     for (i = insertVertices.length - 1; i >= 0; --i) {
       this.insertVertex_.apply(this, insertVertices[i]);
     }
+    this.saveCheckpoint_();
     this.dispatchEvent(new ol.ModifyEvent(ol.ModifyEventType.MODIFYSTART,
         this.features_));
   }
@@ -541,8 +583,10 @@ ol.interaction.Modify.handleUpEvent_ = function(evt) {
     this.rBush_.update(ol.extent.boundingExtent(segmentData.segment),
         segmentData);
   }
-  this.dispatchEvent(new ol.ModifyEvent(ol.ModifyEventType.MODIFYEND,
-      this.features_));
+  if (this.hasChanges_()) {
+    this.dispatchEvent(new ol.ModifyEvent(ol.ModifyEventType.MODIFYEND,
+        this.features_));
+  }
   return false;
 };
 
@@ -804,6 +848,10 @@ ol.interaction.Modify.prototype.removeVertex_ = function() {
 
         this.overlay_.removeFeature(this.vertexFeature_);
         this.vertexFeature_ = null;
+        if (this.hasChanges_()) {
+          this.dispatchEvent(new ol.ModifyEvent(ol.ModifyEventType.MODIFYEND,
+              this.features_));
+        }
       }
     }
   }
