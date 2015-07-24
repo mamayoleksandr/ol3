@@ -17,7 +17,6 @@ goog.require('ol.extent');
 goog.require('ol.proj');
 goog.require('ol.source.State');
 goog.require('ol.source.TileImage');
-goog.require('ol.tilegrid.XYZ');
 
 
 
@@ -37,14 +36,9 @@ ol.source.TileJSON = function(options) {
     crossOrigin: options.crossOrigin,
     projection: ol.proj.get('EPSG:3857'),
     state: ol.source.State.LOADING,
-    tileLoadFunction: options.tileLoadFunction
+    tileLoadFunction: options.tileLoadFunction,
+    wrapX: goog.isDef(options.wrapX) ? options.wrapX : true
   });
-
-  /**
-   * @type {boolean|undefined}
-   * @private
-   */
-  this.wrapX_ = options.wrapX;
 
   var request = new goog.net.Jsonp(options.url);
   request.send(undefined, goog.bind(this.handleTileJSONResponse, this));
@@ -70,23 +64,18 @@ ol.source.TileJSON.prototype.handleTileJSONResponse = function(tileJSON) {
   }
 
   if (goog.isDef(tileJSON.scheme)) {
-    goog.asserts.assert(tileJSON.scheme == 'xyz');
+    goog.asserts.assert(tileJSON.scheme == 'xyz', 'tileJSON-scheme is "xyz"');
   }
   var minZoom = tileJSON.minzoom || 0;
   var maxZoom = tileJSON.maxzoom || 22;
-  var tileGrid = new ol.tilegrid.XYZ({
+  var tileGrid = ol.tilegrid.createXYZ({
     extent: ol.tilegrid.extentFromProjection(sourceProjection),
     maxZoom: maxZoom,
     minZoom: minZoom
   });
   this.tileGrid = tileGrid;
 
-  this.tileUrlFunction = ol.TileUrlFunction.withTileCoordTransform(
-      tileGrid.createTileCoordTransform({
-        extent: extent,
-        wrapX: this.wrapX_
-      }),
-      ol.TileUrlFunction.createFromTemplates(tileJSON.tiles));
+  this.tileUrlFunction = ol.TileUrlFunction.createFromTemplates(tileJSON.tiles);
 
   if (goog.isDef(tileJSON.attribution) &&
       goog.isNull(this.getAttributions())) {
