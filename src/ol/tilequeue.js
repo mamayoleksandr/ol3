@@ -59,7 +59,9 @@ goog.inherits(ol.TileQueue, ol.structs.PriorityQueue);
 
 
 /**
+ * @api
  * @return {number} Number of tiles loading.
+ * 
  */
 ol.TileQueue.prototype.getTilesLoading = function() {
   return this.tilesLoading_;
