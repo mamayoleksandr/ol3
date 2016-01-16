@@ -10,7 +10,6 @@ goog.require('ol.TileLoadFunctionType');
 goog.require('ol.TileState');
 
 
-
 /**
  * @constructor
  * @extends {ol.Tile}
@@ -69,6 +68,9 @@ goog.inherits(ol.ImageTile, ol.Tile);
 ol.ImageTile.prototype.disposeInternal = function() {
   if (this.state == ol.TileState.LOADING) {
     this.unlistenImage_();
+  }
+  if (this.interimTile) {
+    goog.dispose(this.interimTile);
   }
   goog.base(this, 'disposeInternal');
 };

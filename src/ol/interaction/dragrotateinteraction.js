@@ -8,7 +8,6 @@ goog.require('ol.interaction.Interaction');
 goog.require('ol.interaction.Pointer');
 
 
-
 /**
  * @classdesc
  * Allows the user to rotate the map by clicking and dragging on the map,
@@ -49,7 +48,7 @@ ol.interaction.DragRotate = function(opt_options) {
    * @private
    * @type {number}
    */
-  this.duration_ = options.duration ? options.duration : 250;
+  this.duration_ = options.duration !== undefined ? options.duration : 250;
 };
 goog.inherits(ol.interaction.DragRotate, ol.interaction.Pointer);
 
@@ -73,7 +72,6 @@ ol.interaction.DragRotate.handleDragEvent_ = function(mapBrowserEvent) {
     var delta = theta - this.lastAngle_;
     var view = map.getView();
     var rotation = view.getRotation();
-    map.render();
     ol.interaction.Interaction.rotateWithoutConstraints(
         map, view, rotation - delta);
   }
@@ -117,7 +115,6 @@ ol.interaction.DragRotate.handleDownEvent_ = function(mapBrowserEvent) {
   if (browserEvent.isMouseActionButton() && this.condition_(mapBrowserEvent)) {
     var map = mapBrowserEvent.map;
     map.getView().setHint(ol.ViewHint.INTERACTING, 1);
-    map.render();
     this.lastAngle_ = undefined;
     return true;
   } else {

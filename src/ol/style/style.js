@@ -12,7 +12,6 @@ goog.require('ol.style.Image');
 goog.require('ol.style.Stroke');
 
 
-
 /**
  * @classdesc
  * Container for vector feature rendering styles. Any changes made to the style
@@ -199,7 +198,7 @@ ol.style.Style.prototype.setZIndex = function(zIndex) {
  * {@link ol.style.Style}. This way e.g. a vector layer can be styled.
  *
  * @typedef {function((ol.Feature|ol.render.Feature), number):
- *     Array.<ol.style.Style>}
+ *     (ol.style.Style|Array.<ol.style.Style>)}
  * @api
  */
 ol.style.StyleFunction;

@@ -20,7 +20,6 @@ ol.ObjectEventType = {
 };
 
 
-
 /**
  * @classdesc
  * Events emitted by {@link ol.Object} instances are instances of this type.
@@ -52,7 +51,6 @@ ol.ObjectEvent = function(type, key, oldValue) {
 
 };
 goog.inherits(ol.ObjectEvent, goog.events.Event);
-
 
 
 /**
@@ -206,7 +204,9 @@ ol.Object.prototype.set = function(key, value, opt_silent) {
   } else {
     var oldValue = this.values_[key];
     this.values_[key] = value;
-    this.notify(key, oldValue);
+    if (oldValue !== value) {
+      this.notify(key, oldValue);
+    }
   }
 };
 
